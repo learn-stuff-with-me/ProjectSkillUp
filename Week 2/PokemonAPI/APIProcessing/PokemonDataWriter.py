@@ -1,5 +1,6 @@
-from pathlib import Path
+from pathlib import *
 import json
+from typing import Any
 
 
 class PokemonDataWriter:
@@ -49,7 +50,17 @@ class PokemonDataWriter:
         """
 
         if not self.path.exists():
-            self.path.mkdir(parents=True, exist_ok=True)
+            self.path.parent.mkdir(parents=True, exist_ok=True)
 
         with self.path.open("w") as data_file:
             json.dump(data, data_file, indent=4)
+
+    def write_all_data_to_files(
+        self, endpoint_type: str, all_data: list[dict[str, Any]]
+    ):
+
+        for record in all_data:
+            self.path = (
+                f"{endpoint_type.title().replace(' ', '')}/{record.get('name')}.json"
+            )
+            self.write_data_to_file(data=record)

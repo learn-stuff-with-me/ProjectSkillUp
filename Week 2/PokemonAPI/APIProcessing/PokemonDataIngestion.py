@@ -32,6 +32,10 @@ class PokemonDataIngestion:
             folder=self.data_type.title().replace(" ", "")
         )
 
+    @property
+    def endpoint_count(self):
+        return requests.get(self.endpoint).json().get("count")
+
     def get_data_for_id_or_name(self, id: int = None, name: str = "") -> dict[str, Any]:
         """
         Retrieve data for a specific Pokémon by ID or name from the endpoint.
@@ -69,24 +73,50 @@ class PokemonDataIngestion:
 
         file_name = f"{data.get('name')}.json"
 
-        self.data_writer.path = f"{self.data_type.title().replace(' ', '')}"
+        self.data_writer.path = f"{self.data_type.title().replace(' ', '')}/{file_name}"
 
         return data
 
     def get_all_endpoint_data(self) -> list[dict]:
+        """
+        Retrieves data from all available endpoints by incrementally querying each
+        endpoint until a non-200 response is received.
 
+        Returns
+        -------
+        list of dict
+            A list containing the JSON-decoded data from each successfully queried endpoint.
+
+        Notes
+        -----
+        The method assumes that the endpoints are sequentially numbered and accessible via `self.endpoint`.
+        The process stops when an endpoint returns a status code other than 200.
+        """
+
+        all_data = []
+
+        response_code = 200
         endpoint_id = 1
-        data = {}
-        while code := requests.get(self.endpoint + str(endpoint_id)).status_code == 200:
-            data[endpoint_id] = requests.get(f"{self.endpoint}{endpoint_id}").json()
+
+        while response_code == 200:
+            response_code = requests.get(f"{self.endpoint}{endpoint_id}").status_code
+
+            if response_code != 200:
+                break
+
+            all_data.append(requests.get(f"{self.endpoint}{endpoint_id}").json())
 
             endpoint_id += 1
 
-        return data
+        return all_data
 
 
-test = PokemonDataIngestion("species")
+endpoints = [
+    PokemonDataIngestion(endpoint)
+    for endpoint in PokemonDataIngestion.ENDPOINTS.keys()
+    if endpoint not in ["genders", "species"]
+]
 
-bulbasaur_data = test.get_data_for_id_or_name(1)
-
-test.data_writer.write_data_to_file(data=bulbasaur_data)
+for endpoint in endpoints:
+    data = endpoint.get_all_endpoint_data()
+    endpoint.data_writer.write_all_data_to_files(endpoint.data_type, data)
