@@ -20,32 +20,14 @@ class Pokemon:
         self.height = height
         self.weight = weight
         self.data_reader = PokemonDataReader(self.name)
-        self.abilities = None
-        self.moves = None
-        self.stats = None
-        self.types = None
-        self.forms = None
-
-    def read_all_data(self) -> None:
-        """
-        Reads and parses all relevant Pokémon data from the data reader.
-
-        This method loads Pokémon data and sequentially parses abilities, forms, moves,
-        stats, and types, storing the processed information in the corresponding attributes.
-
-        Returns
-        -------
-        None
-            This method does not return any value. It updates instance attributes with parsed data.
-        """
         self.pokemon_data = self.data_reader.read_pokemon_data()
-        self._parse_abilities()
-        self._parse_forms()
-        self._parse_moves()
-        self._parse_stats()
-        self._parse_types()
+        self.abilities = self._parse_abilities()
+        self.moves = self._parse_moves()
+        self.stats = self._parse_stats()
+        self.types = self._parse_types()
+        self.forms = self._parse_forms()
 
-    def _parse_abilities(self) -> None:
+    def _parse_abilities(self) -> list[Ability]:
         """
         Parses the abilities from the Pokémon data and initializes the abilities attribute.
         Extracts each ability's name and hidden status from the `pokemon_data` dictionary,
@@ -62,7 +44,7 @@ class Pokemon:
                 Ability(ability.get("ability").get("name"), ability.get("is_hidden"))
             )
 
-        self.abilities = all_abilities
+        return all_abilities
 
     def _parse_forms(self) -> None:
         """
@@ -85,10 +67,10 @@ class Pokemon:
             for form in forms:
                 all_forms.append(form.get("name"))
 
-            self.forms = all_forms
+            return all_forms
 
         else:
-            self.forms = forms[0].get("name")
+            return forms[0].get("name")
 
     def _parse_moves(self) -> None:
         """
@@ -108,7 +90,7 @@ class Pokemon:
         for move in moves:
             all_moves.append(move.get("move").get("name"))
 
-        self.moves = all_moves
+        return all_moves
 
     def _parse_stats(self) -> None:
         """
@@ -140,7 +122,7 @@ class Pokemon:
                 )
             )
 
-        self.stats = all_stats
+        return all_stats
 
     def _parse_types(self) -> None:
         """
@@ -168,14 +150,12 @@ class Pokemon:
             for type in types:
                 all_types.append(type.get("type").get("name"))
 
-            self.types = all_types
+            return all_types
 
         else:
-            self.types = types[0].get("type").get("name")
+            return types[0].get("type").get("name")
 
 
 bulbasaur = Pokemon("bulbasaur")
-
-bulbasaur.read_all_data()
 
 print()
