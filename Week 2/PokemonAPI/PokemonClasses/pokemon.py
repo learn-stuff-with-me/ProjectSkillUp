@@ -20,6 +20,11 @@ class Pokemon:
         self.height = height
         self.weight = weight
         self.data_reader = PokemonDataReader(self.name)
+        self.abilities = None
+        self.moves = None
+        self.stats = None
+        self.types = None
+        self.forms = None
 
     def read_all_data(self) -> None:
         """
