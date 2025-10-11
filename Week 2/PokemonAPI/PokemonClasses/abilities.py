@@ -2,7 +2,6 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Abilities:
-    ability_id: int
+class Ability:
     ability_name: str
-    from_main_series: bool
+    is_hidden: bool
