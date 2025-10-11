@@ -46,7 +46,7 @@ class Pokemon:
 
         return all_abilities
 
-    def _parse_forms(self) -> None:
+    def _parse_forms(self) -> str | list[str]:
         """
         Parses the 'forms' data from the Pokémon information and sets the 'forms' attribute.
         If multiple forms are present, assigns a list of form names to 'self.forms'.
@@ -72,7 +72,7 @@ class Pokemon:
         else:
             return forms[0].get("name")
 
-    def _parse_moves(self) -> None:
+    def _parse_moves(self) -> list[str]:
         """
         Parses the moves from the Pokémon data and stores their names.
         Retrieves the list of moves from the `pokemon_data` attribute, extracts the name of each move,
@@ -92,7 +92,7 @@ class Pokemon:
 
         return all_moves
 
-    def _parse_stats(self) -> None:
+    def _parse_stats(self) -> list[Stat]:
         """
         Parses the stats from the Pokémon data and initializes the `self.stats` attribute.
 
@@ -124,7 +124,7 @@ class Pokemon:
 
         return all_stats
 
-    def _parse_types(self) -> None:
+    def _parse_types(self) -> str | list[str]:
         """
         Parses the types information from the Pokémon data and assigns it to the `self.types` attribute.
         If the Pokémon has multiple types, `self.types` will be a list of type names.
