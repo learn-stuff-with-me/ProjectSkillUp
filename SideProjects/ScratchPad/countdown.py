@@ -16,3 +16,5 @@ def countdown(seconds):
 
 path = Path.cwd()
 print(path)
+
+print(6 % 2)

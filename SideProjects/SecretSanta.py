@@ -8,14 +8,6 @@
 # They will have to specify that in the beginning so that they cannot be matched with
 # That person.
 
-# Optional features
-#   1. Create function that populates the pairings dictionary and raises exception if
-#      the only viable option is the significant other of the participant.
-#   2. Create while loop try, except block that will continue retrying to populate
-#      pairings until we get a set of pairings that doesn't end with SO's getting paired
-#   3. Display pairings after population rather than during population so that a display
-#      doesn't happen until a successful run happens.
-
 from random import randint
 import time
 import sys
@@ -23,6 +15,35 @@ import os
 import csv
 from pathlib import Path
 import datetime as dt
+
+
+def get_pairings(
+    participants: list[str], significant_others: dict[str, str]
+) -> dict[str, str]:
+
+    matched = []
+    pairings = {}
+
+    for participant in participants:
+        available_matches = [
+            name
+            for name in participants
+            if name != participant
+            and name != significant_others.get(participant)
+            and name not in matched
+        ]
+
+        if len(available_matches) > 1:
+            match_number = randint(0, len(available_matches) - 1)
+        else:
+            match_number = 0
+
+        sec_san_match = available_matches[match_number]
+
+        pairings[participant] = sec_san_match
+        matched.append(sec_san_match)
+
+    return pairings
 
 
 def clear():
@@ -48,8 +69,6 @@ name = input("Enter a name:\n")
 
 participants = []
 significant_others = {}
-pairings = {}
-matched = []
 
 while name.lower() != "no":
     names = name.replace(" ", "").split(",")
@@ -73,30 +92,41 @@ while name.lower() != "no":
         # so_participating = input(f"Is {name}'s significant other participating?\n")
 
     else:
+        if len(participants) % 2 != 0:
+            print(
+                """
+                You have an uneven number of participants, you will not be able to
+                match all of the participants
+                """
+            )
+            sys.exit(1)
         break
 
-# display to terminal resulting match
-for match_participant in participants:
-    available_matches = [
-        name
-        for name in participants
-        if name != match_participant
-        and name != significant_others.get(match_participant)
-        and name not in matched
-    ]
 
-    if len(available_matches) > 1:
-        match_number = randint(0, len(available_matches) - 1)
-    else:
-        match_number = 0
+missing_pairings = True
 
-    clear()
-    sec_san_match = available_matches[match_number]
-    print(f"{match_participant}, you matched with: {sec_san_match}")
+while missing_pairings:
+    try:
+        pairings = get_pairings(participants, significant_others)
+
+        if pairings:
+            missing_pairings = False
+
+    except Exception as e:
+        continue
+
+
+print("The order of the pairings to be displayed will be as follows")
+for name in pairings.keys():
+    print(name)
+
+countdown(5)
+
+clear()
+for name, pairing in pairings.items():
+    print(f"{name}, Your match is: {pairing}")
     countdown(5)
     clear()
-    pairings[match_participant] = sec_san_match
-    matched.append(sec_san_match)
 
 
 target_path = Path.cwd() / "SideProjects/SecretSantaPairings/"
