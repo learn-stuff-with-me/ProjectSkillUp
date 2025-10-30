@@ -20,6 +20,45 @@ import datetime as dt
 def get_pairings(
     participants: list[str], significant_others: dict[str, str]
 ) -> dict[str, str]:
+    """
+    Generate Secret Santa pairings while avoiding self-assignments and (optionally) significant others.
+    Parameters
+    ----------
+    participants : list[str]
+        Sequence of participant names. Each participant is assigned exactly one recipient (a different participant).
+    significant_others : dict[str, str]
+        Mapping from participant name to their significant other's name. A participant will not be assigned to the name
+        returned by significant_others.get(participant). If you want the exclusion to apply in both directions you should
+        include both entries (A->B and B->A) in this mapping.
+    Returns
+    -------
+    dict[str, str]
+        A dictionary mapping each participant to the participant they should give a gift to. Each recipient will appear
+        at most once (i.e., assignments are unique recipients).
+    Raises
+    ------
+    IndexError
+        If, when processing a participant, there are no valid available matches (empty candidate list). This can occur
+        when the greedy one-pass algorithm cannot satisfy all constraints given the current ordering of participants.
+    NameError
+        If the function's implementation expects random.randint to be in scope but has not been imported in the caller's
+        module (ensure `from random import randint` or `import random` is available).
+    Notes
+    -----
+    - The implementation performs a single greedy pass over `participants`. For each participant it builds a list of
+      candidates that are not the participant themselves, are not the participant's significant other (if present), and
+      have not already been assigned as a recipient. One candidate is chosen at random using randint.
+    - Because the algorithm is greedy and uses random selection among candidates, it may fail to produce a complete
+      assignment even when a valid global assignment exists. If you need guaranteed-success matchings, consider using
+      a backtracking or matching algorithm (e.g., bipartite matching) instead.
+    - Results are non-deterministic unless the random seed is fixed externally.
+    Examples
+    --------
+    >>> participants = ['Alice', 'Bob', 'Carol']
+    >>> significant_others = {'Alice': 'Bob', 'Bob': 'Alice'}
+    >>> # Possible output (order and choices may vary due to randomness):
+    >>> {'Alice': 'Carol', 'Bob': 'Alice', 'Carol': 'Bob'}
+    """
 
     matched = []
     pairings = {}
@@ -88,8 +127,6 @@ while name.lower() != "no":
 
     if add_more.lower() != "no":
         name = input("Enter a name: ")
-        # has_so = input(f"Does {name} have a significant other?\n")
-        # so_participating = input(f"Is {name}'s significant other participating?\n")
 
     else:
         if len(participants) % 2 != 0:
@@ -107,23 +144,23 @@ missing_pairings = True
 
 while missing_pairings:
     try:
-        pairings = get_pairings(participants, significant_others)
+        final_pairings = get_pairings(participants, significant_others)
 
-        if pairings:
+        if final_pairings:
             missing_pairings = False
 
-    except Exception as e:
+    except IndexError as e:
         continue
 
 
 print("The order of the pairings to be displayed will be as follows")
-for name in pairings.keys():
+for name in final_pairings:
     print(name)
 
 countdown(5)
 
 clear()
-for name, pairing in pairings.items():
+for name, pairing in final_pairings.items():
     print(f"{name}, Your match is: {pairing}")
     countdown(5)
     clear()
@@ -138,5 +175,5 @@ with final_path.open("w") as csv_file:
     writer = csv.writer(csv_file)
     writer.writerow(["name", "pairing"])
 
-    for name, pairing in pairings.items():
+    for name, pairing in final_pairings.items():
         writer.writerow([name, pairing])
